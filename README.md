@@ -1,81 +1,107 @@
 # 🎮 Lord of the Broken — ConsoleRPG
 
-> A real-time, narrative-driven RPG built entirely in the Windows terminal using C++17 — no game engine, no libraries, just raw C++ and the Win32 console API.
+> A real-time, narrative-driven RPG built entirely in C++17 for the Windows terminal — no game engine, no frameworks, pure C++ and Win32.
 
 ---
 
 ## 📖 Overview
 
-**Lord of the Broken** is a C++ console RPG inspired by the *Lord of the Mysteries* universe. Players ascend a **Pathway** — a supernatural power sequence — choose a **Sealed Artifact**, and are thrown into real-time grid-based combat against corrupted Beyonder creatures.
+**Lord of the Broken** is a real-time console RPG set in a dark fantasy world of Beyonders — supernatural humans who ascend power sequences called **Pathways**. The player chooses their Pathway, picks a **Sealed Artifact**, and battles corrupted creatures in a grid-based combat arena — all rendered live in the terminal.
 
-The project was built from scratch as part of a personal game development learning journey, with the goal of understanding how games work at a low level — game loops, real-time input, rendering, entity systems, and state management — all without relying on any game engine or third-party framework.
+Every system in this project — the game loop, combat engine, enemy AI, renderer, and UI navigation — was designed and built from scratch in C++.
 
 ---
 
-## ✨ Features
+## 🎬 Gameplay
 
-### 🧠 Systems Built From Scratch
-- **Real-time game loop** with `Sleep(30)` tick-rate control
-- **Keyboard-driven UI navigation** system with two schemes — Horizontal and Vertical — both supporting arrow key input and live cursor rendering via `▶`
-- **Typewriter text renderer** for narrative delivery, character by character with configurable delay
-- **Console arena renderer** with Win32 color highlighting (red flash on enemy hit)
-- **Enemy telegraph & attack system** — enemy signals its attack tile `'o'` for 1 second before impact `'X'`, punishing stationary players and rewarding XP for dodging
+The player wakes up to chaos outside their window. A city-wide supernatural alert is in effect. They grab one of three Sealed Artifacts and rush out — only to be ambushed by a mutated creature in the hallway.
 
-### ⚔️ Combat System
+From there, it's real-time combat: move, attack, dodge telegraphed enemy strikes, manage HP and XP, and use your Pathway's ultimate ability to turn the fight.
+
+---
+
+## ⚔️ Combat System
+
+The combat arena is a live grid rendered in the terminal. Both the player and enemy act in real time.
+
 | Key | Action |
 |-----|--------|
-| Arrow Keys | Move player on the grid |
-| `Q` | Attack (range depends on Pathway) |
-| `E` | Use Ultimate ability (costs 15 XP) |
+| Arrow Keys | Move on the grid |
+| `Q` | Attack (range varies by Pathway) |
+| `E` | Ultimate ability (costs 15 XP) |
 | `Z` | Activate Sealed Artifact (costs 10 XP) |
 | `H` | Heal +2 HP (costs 5 XP) |
 | `Esc` | Exit combat |
 
-### 🌀 Three Pathways — Each Changes Your Playstyle
-| Pathway | Attack Range | Ultimate |
-|---------|-------------|---------|
-| **Fool** | Diagonal tiles only | Instantly kills the enemy |
-| **Error** | Cardinal cross (up/down/left/right) | Swap positions with the enemy |
-| **Door** | Entire row and column | Teleport enemy to the farthest possible tile |
-
-### 🏺 Three Sealed Artifacts
-| Artifact | Power |
-|----------|-------|
-| **Sea God Scepter** | Deals 1 damage per second for 6 seconds (damage over time aura) |
-| **Staff of Stars** | Copy and channel the abilities of other Beyonders |
-| **Life's Cane** | Harness powers of reproduction and mutation |
-
-### 👤 Character Creation
-- Custom character name (up to 250 characters, with real-time length counter and overflow warning)
-- Gender selection
-- Pathway selection
-- Confirmation screen before finalising
+**Enemy behaviour:** The enemy telegraphs its attack by marking the target tile `'o'` for one second before impact `'X'`. Dodging rewards XP; taking the hit costs HP.
 
 ---
 
-## 🏗️ Architecture
+## 🌀 Pathways
 
-The project is split into focused, single-responsibility modules:
+Each Pathway gives the player a distinct attack range and a unique ultimate ability, fundamentally changing how combat is approached.
+
+| Pathway | Attack Range | Ultimate |
+|---------|-------------|---------|
+| **Fool** | Diagonal tiles | Instantly destroys the enemy |
+| **Error** | Cardinal cross (4 directions) | Swap positions with the enemy |
+| **Door** | Entire row and column | Banish the enemy to the farthest tile on the grid |
+
+---
+
+## 🏺 Sealed Artifacts
+
+Before combat, the player chooses one artifact to carry. Each has a unique active effect triggered in combat.
+
+| Artifact | Effect |
+|----------|--------|
+| **Sea God Scepter** | Deals 1 damage per second for 6 seconds (damage over time aura) |
+| **Staff of Stars** | Channel the copied abilities of other Beyonders |
+| **Life's Cane** | Harness powers of reproduction and mutation |
+
+---
+
+## 🏗️ Technical Details
+
+### Systems Built From Scratch
+
+**Game Loop**
+Tick-based loop with `Sleep(30)` rate control, cleanly separated into input → update → render phases per frame.
+
+**Real-Time Input**
+Non-blocking keyboard input via `_kbhit()` and `_getch()`, allowing the player and enemy to act simultaneously without waiting on input.
+
+**Enemy AI**
+Manhattan distance pathfinding — the enemy calculates the dominant axis toward the player each tick and steps accordingly, with a configurable move delay.
+
+**Telegraph & Impact System**
+A two-phase attack system with independent timers: a 1-second warning phase (`'o'`) followed by a 250ms impact phase (`'X'`), implemented using `GetTickCount()` deltas.
+
+**Console Renderer**
+Full arena re-render each frame using `system("cls")` with Win32 color attributes for hit feedback. Inline menu renderer uses `SetConsoleCursorPosition` to update in-place without clearing the screen.
+
+**Navigation System**
+A reusable, overloaded `RunNavigation()` function that powers every menu in the game — supports both full-screen and inline rendering modes, horizontal and vertical layouts.
+
+**Typewriter Text Engine**
+Character-by-character narrative output with configurable millisecond delay for cinematic story delivery.
+
+### Architecture
 
 ```
 ConsoleRPG/
-├── main.cpp                  — Entry point, start menu, top-level flow
-├── StartMenu.cpp/h           — Start menu rendering and choice enum
-├── CharacterCreation.cpp/h   — Name input, gender/pathway selection
-├── Game.cpp/h                — Story narrative and game flow
-├── Combat.cpp/h              — Game loop, player & enemy update logic
-├── Renderer.cpp/h            — Arena rendering, menu rendering, typewriter text
-├── NavigationSystem.cpp/h    — Reusable keyboard navigation for all menus
-├── Entities.h                — Enemy struct definition
-├── PlayerData.h              — PlayerData struct (HP, XP, Pathway, Artifact)
+├── main.cpp                  — Entry point and top-level flow
+├── StartMenu.cpp/h           — Start menu
+├── CharacterCreation.cpp/h   — Name input, gender and pathway selection
+├── Game.cpp/h                — Story narrative and scene management
+├── Combat.cpp/h              — Game loop, player update, enemy update
+├── Renderer.cpp/h            — Arena, menu, and typewriter rendering
+├── NavigationSystem.cpp/h    — Reusable keyboard navigation system
+├── Entities.h                — Enemy struct
+├── PlayerData.h              — Player state (HP, XP, Pathway, Artifact)
 ├── CharacterAttributes.h     — Enums: Gender, Pathway, SealedArtifacts
-└── Position.h                — Shared Position struct (row, col)
+└── Position.h                — Shared grid position struct
 ```
-
-Key design decisions:
-- **`Position` is isolated** in its own header to break the circular dependency between `Combat.h` and `Entities.h`
-- **`RunNavigation` is overloaded** — one version for full-screen menus (clears screen per tick), another for inline menus that renders in-place using `SetConsoleCursorPosition` without clearing the screen
-- **Enemy AI** uses Manhattan distance pathfinding — moves one step per tick toward the player along the dominant axis
 
 ---
 
@@ -85,45 +111,21 @@ Key design decisions:
 |---|---|
 | **Language** | C++17 |
 | **Platform** | Windows |
-| **APIs Used** | `windows.h` (console color, cursor positioning, timing), `conio.h` (raw keyboard input) |
-| **Compiler** | g++ via MinGW64 |
-| **Build System** | `mingw32-make` |
+| **APIs** | Win32 (`windows.h`), `conio.h` |
+| **Compiler** | g++ / MinGW64 |
+| **Build** | `mingw32-make` |
 
 ---
 
 ## 🚀 Build & Run
 
-**Requirements:** MinGW64 with g++ on your PATH
+**Requires:** MinGW64 with `g++` on your PATH
 
 ```bash
-# Clone the repo
 git clone https://github.com/YOUR_USERNAME/ConsoleRPG.git
 cd ConsoleRPG
-
-# Build
 mingw32-make
-
-# Run
 ./build-Debug/bin/ConsoleRPG.exe
 ```
 
-> ⚠️ Windows only — relies on Win32 console APIs (`windows.h`, `conio.h`)
-
----
-
-## 🎯 What I Learned Building This
-
-- How a **real-time game loop** works — separating input, update, and render phases
-- Managing **game state** across multiple systems without a framework
-- Handling **raw keyboard input** with `_kbhit()` and `_getch()` for non-blocking reads
-- Using **Win32 console APIs** for cursor positioning, color output, and tick-based timing with `GetTickCount()`
-- Designing **reusable systems** — the navigation system works for every menu in the game with a single function
-- Debugging **circular header dependencies** and structuring includes correctly in multi-file C++ projects
-- Thinking through **data ownership** — when to pass by value vs reference, and when `const` matters
-
----
-
-## 📌 Status
-
-> ✅ **Completed — Phase 1 Learning Project**
-> This project is complete as a self-contained learning milestone. All core systems — combat, navigation, character creation, and rendering — are fully functional. It is intentionally preserved in its current state as a snapshot of Phase 1 game development learning.
+> ⚠️ Windows only — relies on Win32 console APIs
