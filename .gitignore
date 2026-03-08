@@ -1,0 +1,28 @@
+# Build output
+build-Debug/
+build-Release/
+*.exe
+*.o
+*.i
+
+# CodeLite IDE files
+*.project
+*.workspace
+*.tags
+*.codelite
+.codelite/
+*.mk
+*.lnk
+
+# Compiler/linker artifacts
+*.d
+*.a
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
