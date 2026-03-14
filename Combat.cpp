@@ -62,7 +62,7 @@ void UpdatePlayer(Position &playerpos, Enemy &enemy, bool &CombatRunning, Player
         int newCol {playerpos.col};
         if(_kbhit()) {
         int key = _getch();
-        if(key == 224) { //movement
+        if(key == 224) { //movement arrow keys
             int arrow = _getch();
             if(arrow == 72)
                 newRow--;
@@ -72,25 +72,25 @@ void UpdatePlayer(Position &playerpos, Enemy &enemy, bool &CombatRunning, Player
                 newCol--;
             if(arrow == 77)
                 newCol++;
-        } else if(key == 113) { // attack
+        } else if(key == 113) { // attack q
             bool hit {false};
             PlayerAttack(hit, PlayerData, enemy, playerpos, StaffOfStarsActive);
             if(hit) {
                 enemy.HP--;
                 EnemyHit = true;
             }
-        } else if(key == 104) { //heal
+        } else if(key == 104) { //heal h
             if(PlayerData.PlayerXP >= 5 && PlayerData.PlayerHP < 10) {
                 PlayerData.PlayerXP -= 5;
                 PlayerData.PlayerHP +=2;
                 PlayerData.PlayerHP = std::clamp(PlayerData.PlayerHP, 0, 10);
             }
-        } else if(key == 101) { // use authority
+        } else if(key == 101) { // use authority e
             if(PlayerData.PlayerXP == 15) {
                 PlayerData.PlayerXP -= 15;
                 UseAuthority(PlayerData, enemy, playerpos, ArenaRows, ArenaColumns);
             }
-        } else if(key == 122) { // use sealed artifact
+        } else if(key == 122) { // use sealed artifact z
             if(PlayerData.PlayerXP >= 10) {
                 PlayerData.PlayerXP -= 10;
                 switch(PlayerData.Artifact) {
